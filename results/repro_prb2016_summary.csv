@@ -1,0 +1,15 @@
+quantity,value
+elec_max_abs_err_pade_x_le_0.5,0.0553186
+elec_max_abs_err_static_x_le_0.5,0.650564
+elec_max_abs_err_series_x_le_0.5,0.0505638
+mag_max_abs_err_pct_eq15_x_le_0.8,0.933093
+mag_max_abs_err_pct_eq13_x_le_0.8,10.9299
+mag_max_abs_err_pct_eq8_x_le_0.8,33.3404
+mag_max_abs_err_pct_eq15_x_le_1.0,4.9176
+mag_x_where_eq15_err_first_exceeds_1pct,0.81
+mag_max_abs_err_pct_eq15_vs_real_x_le_0.8,1.52158
+mag_x_where_eq15_err_vs_real_first_exceeds_1pct,0.76
+absn_b1_max_rel_dev_eq15_imag_x_le_0.8,0.0739177
+absn_b1_eps_imag_min_x_0.4_0.8,0.719232
+absn_b1_eps_imag_max_x_0.4_0.8,1.0976
+absn_a1_max_rel_dev_from_2x3_x_le_0.2,0.0573917
