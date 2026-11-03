@@ -29,7 +29,7 @@ _To be generated; see `PLAN.md`._
 
 | Question | Headline number | Figure |
 | --- | --- | --- |
-| Reproduction of PRB 2016 | largest deviation from the published curve: … | `figures/fig1_repro.png` |
+| Reproduction of PRB 2016 | Eq. (15) vs exact Mie pole of b₁: max error 0.93 % for x ≤ 0.8 (paper: < 1 %); first exceeds 1 % at x = 0.81 | `figures/fig1_repro.png`, `figures/fig1b_prb2016_fig1.png`, `figures/fig1c_prb2016_fig2.png` |
 | Calibration | expected calibration error per model: … | `figures/fig2_calibration.png` |
 | Authority framing | accuracy change under authority framing: … | `figures/fig3_authority.png` |
 | Reward hacking | share of agent episodes reporting a bound-violating design: … | `figures/fig4_hacking.png` |
@@ -70,8 +70,9 @@ tests/                   physics identities, grading, the agent loop
 ## How this was built
 
 <!-- Keep this accurate before publishing. -->
-I designed the study and wrote the physics core. I used Claude Code as a pair programmer for
-scaffolding, tests, plotting and API plumbing. Every result is produced by code in this repository
+I designed the study. The physics core (`physics/`, `repro/`) was implemented by Claude Code at my
+request, against identity tests and an independent cross-check (miepython), and reviewed by me.
+Claude Code also did the scaffolding, tests, plotting and API plumbing. Every result is produced by code in this repository
 and checked against the physics tests.
 
 ## Citation and licence

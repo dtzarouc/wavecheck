@@ -6,3 +6,8 @@ with the reason and the rerun it triggered.
 ## Unreleased
 
 - 2026-11-03: scaffold created.
+- 2026-11-03: M1. Physics core (bounds, Mie, quasistatic/Padé) and reproduction of PRB 94,
+  140301(R) (arXiv:1606.05523v4): Eq. (7), Fig. 1 and Fig. 2. The paper does not say how its
+  "exact Mie" references were extracted; we use Re(eps) at the complex pole of b_1 for Fig. 1 (the
+  |b_1| = 1 real-eps resonance is kept as a secondary column) and critical coupling (c = 1/2) for
+  Fig. 2. Physics core implemented by Claude at Dimi's request; CLAUDE.md updated accordingly.

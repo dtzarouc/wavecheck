@@ -13,12 +13,12 @@ the application between 19 and 21 November.
 
 ## M1 · Physics core and the reproduction (5–7 Nov)
 
-- [ ] `physics/mie.py`: Mie coefficients, efficiencies, per-channel terms, exact dipole resonance.
-- [ ] `physics/quasistatic.py`: naive Rayleigh model, radiation-reaction correction, and the
+- [x] `physics/mie.py`: Mie coefficients, efficiencies, per-channel terms, exact dipole resonance.
+- [x] `physics/quasistatic.py`: naive Rayleigh model, radiation-reaction correction, and the
       Padé–Mie dipole resonance from PRB 94, 140301(R) (2016).
-- [ ] `physics/bounds.py`: single-channel limit, passivity and energy-conservation residuals.
+- [x] `physics/bounds.py`: single-channel limit, passivity and energy-conservation residuals.
 - [ ] `pytest` green locally and on GitHub Actions.
-- [ ] `repro/prb2016.py`: reproduce one figure from the 2016 paper as `figures/fig1_repro.png`,
+- [x] `repro/prb2016.py`: reproduce one figure from the 2016 paper as `figures/fig1_repro.png`,
       overlaying the published data if you still have it.
 
 ## M2 · Evaluation (8–12 Nov)
