@@ -45,8 +45,10 @@ def test_eq15_converges_to_exact_magnetic_resonance():
 
 @pytest.mark.parametrize(
     "approx,limit",
-    [(qs.magnetic_resonance_eq8, 10.5 / np.pi**2 - 1),
-     (lambda x: qs.magnetic_resonance_eq13(x).real, (3.1614 / np.pi) ** 2 - 1)],
+    [
+        (qs.magnetic_resonance_eq8, 10.5 / np.pi**2 - 1),
+        (lambda x: qs.magnetic_resonance_eq13(x).real, (3.1614 / np.pi) ** 2 - 1),
+    ],
 )
 def test_eq8_and_eq13_keep_a_constant_relative_offset_as_x_to_0(approx, limit):
     """Their leading term c/x^2 has c != pi^2, so the relative error tends to c/pi^2 - 1."""

@@ -153,24 +153,40 @@ def magnetic_dipole_resonance_eps(x: float, n_grid: int = 4000) -> float:
     raise RuntimeError(f"no magnetic dipole resonance found for x = {x}")
 
 
-def max_absorption_eps(x: float, channel: str, guess: complex) -> complex:
-    """Complex permittivity at which one dipole channel absorbs the most (critical coupling).
+def _solve_inverse_coefficient(x: float, channel: str, target: complex, guess: complex) -> complex:
+    """Complex eps with 1/c(eps) = target, c = a_1 ('E') or b_1 ('M'); Newton-type root from guess.
 
-    The channel absorption efficiency is (6/x^2) (Re c - |c|^2) with c = a_1 or b_1. It is
-    maximal, equal to (6/x^2)/4, exactly when c = 1/2. We solve c(eps) = 1/2 for complex eps with
-    scipy.optimize.root, starting from `guess` (an approximate formula, e.g. from PRB 94, 140301).
-    We solve the equivalent 1/c(eps) = 2: 1/c varies smoothly with eps, whereas c itself is sharply
-    resonant, so the root finder is far better conditioned.
+    1/c varies smoothly with eps, whereas c itself is sharply resonant, so solving for 1/c is far
+    better conditioned. Convergence is judged by the residual, because scipy's hybr may report
+    "slow progress" once it is already at machine precision.
     """
 
     def residual(v: np.ndarray) -> list[float]:
-        r = 1.0 / _first_coefficient(complex(v[0], v[1]), x, channel) - 2.0
+        r = 1.0 / _first_coefficient(complex(v[0], v[1]), x, channel) - target
         return [r.real, r.imag]
 
     sol = optimize.root(residual, [guess.real, guess.imag], method="hybr", tol=1e-13)
     eps = complex(sol.x[0], sol.x[1])
-    # Judge convergence by the residual itself: hybr may report "slow progress" once it is
-    # already at machine precision.
-    if abs(_first_coefficient(eps, x, channel) - 0.5) > 1e-9:
-        raise RuntimeError(f"max-absorption root not converged for x = {x}, channel {channel}")
+    if abs(1.0 / _first_coefficient(eps, x, channel) - target) > 1e-9:
+        raise RuntimeError(f"root 1/c = {target} not converged for x = {x}, channel {channel}")
     return eps
+
+
+def max_absorption_eps(x: float, channel: str, guess: complex) -> complex:
+    """Complex permittivity at which one dipole channel absorbs the most (critical coupling).
+
+    The channel absorption efficiency is (6/x^2) (Re c - |c|^2) with c = a_1 or b_1. It is
+    maximal, equal to (6/x^2)/4, exactly when c = 1/2, i.e. 1/c = 2. `guess` should be an
+    approximate formula, e.g. from PRB 94, 140301(R).
+    """
+    return _solve_inverse_coefficient(x, channel, 2.0, guess)
+
+
+def pole_eps(x: float, channel: str, guess: complex) -> complex:
+    """Complex permittivity of the pole of a_1 ('E') or b_1 ('M'): 1/c(eps) = 0.
+
+    With exp(-i w t) the pole lies in the active half-plane, Im(eps) < 0. Its real part is the
+    natural "exact" counterpart of the complex Padé resonance conditions of PRB 94, 140301(R)
+    (Eqs. 11, 13, 15), which are themselves poles of Padé approximants.
+    """
+    return _solve_inverse_coefficient(x, channel, 0.0, guess)

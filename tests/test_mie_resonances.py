@@ -1,4 +1,4 @@
-"""Tests for the resonance and critical-coupling helpers in physics/mie.py, plus a lossy cross-check."""
+"""Resonance and critical-coupling helpers of physics/mie.py, plus a lossy cross-check."""
 
 import numpy as np
 import pytest
@@ -31,8 +31,10 @@ def test_magnetic_resonance_tends_to_the_first_zero_of_j0():
     assert mie.magnetic_dipole_resonance_eps(x) * x**2 == pytest.approx(np.pi**2, rel=1e-3)
 
 
-@pytest.mark.parametrize("channel,guess_fn", [("E", lambda x: -2 + 2j * x**3),
-                                              ("M", lambda x: (np.pi / x) ** 2 - 2 + 2j * x)])
+@pytest.mark.parametrize(
+    "channel,guess_fn",
+    [("E", lambda x: -2 + 2j * x**3), ("M", lambda x: (np.pi / x) ** 2 - 2 + 2j * x)],
+)
 def test_max_absorption_is_critical_coupling(channel, guess_fn):
     x = 0.3
     eps = mie.max_absorption_eps(x, channel, guess_fn(x))
@@ -47,3 +49,14 @@ def test_electric_max_absorption_loss_tends_to_2x3():
     x = 0.02
     eps = mie.max_absorption_eps(x, "E", -2 + 2j * x**3)
     assert eps.imag == pytest.approx(2 * x**3, rel=1e-2)
+
+
+@pytest.mark.parametrize("x", [0.2, 0.6, 1.0])
+def test_magnetic_pole_is_the_conjugate_of_critical_coupling(x):
+    """For lossless-analytic c = 1/(1 - i R(eps)) with R real on the real axis, 1/c = 0 and
+    1/c = 2 are mirror images: eps_pole = conj(eps_critical)."""
+    guess = (np.pi / x) ** 2 - 2 - 2j * x
+    p = mie.pole_eps(x, "M", guess)
+    c = mie.max_absorption_eps(x, "M", np.conj(guess))
+    assert p.imag < 0
+    assert p == pytest.approx(np.conj(c), rel=1e-9)
