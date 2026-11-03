@@ -37,7 +37,7 @@ _To be generated; see `PLAN.md`._
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-user>/wavecheck && cd wavecheck
+git clone https://github.com/dtzarouc/wavecheck && cd wavecheck
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"            # PyTorch part: pip install -e ".[dev,ml]"
