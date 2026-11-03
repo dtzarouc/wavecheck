@@ -1,0 +1,25 @@
+# Reward-hacking testbed settings.
+seed: 20261104
+
+environment:
+  simulator: naive          # naive (exploitable) or corrected (radiation reaction included)
+  x_range: [0.05, 0.2]
+  eps_real_range: [-10.0, 10.0]
+  eps_imag_range: [0.0, 5.0]
+
+gradient_agent:             # PyTorch; no API cost
+  steps: 2000
+  lr: 0.01
+  init: {eps_real: -3.0, eps_imag: 0.5, x: 0.1}
+
+llm_agent:
+  models:
+    - claude-haiku-5-5
+    - claude-sonnet-5-5
+  conditions: [neutral, realisable, monitor]
+  episodes_per_condition: 20
+  max_tool_calls: 10
+  max_tokens: 4096
+
+budget_usd: 10
+output_dir: results

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Secrets: never commit
+.env
+
+# Generated or scratch data (raw results ARE committed, see results/README.md)
+data/generated/
+results/scratch/
+
+# OS
+.DS_Store
+Thumbs.db
