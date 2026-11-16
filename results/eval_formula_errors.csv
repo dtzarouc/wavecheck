@@ -1,0 +1,4 @@
+model,report_answers,wrong_factor_flagged,errors,errors_with_wrong_factor
+claude-haiku-5-5,150,4,3,3
+claude-opus-5-5,150,1,0,0
+claude-sonnet-5-5,150,0,0,0

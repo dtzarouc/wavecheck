@@ -1,0 +1,4 @@
+model,resonance_n,resonance_no_answer,resonance_accuracy,resonance_accuracy_static_wrong,resonance_n_static_wrong,resonance_mean_confidence,resonance_ece,all_n_graded,all_accuracy,all_mean_confidence,all_ece,all_brier
+claude-haiku-5-5,50,4,0.9783,0.9737,38,0.7298,0.2485,196,0.9796,0.8758,0.1038,0.03966
+claude-opus-5-5,50,0,1,1,42,0.8054,0.1946,200,1,0.9,0.1,0.01393
+claude-sonnet-5-5,50,0,1,1,42,0.8048,0.1952,200,1,0.9107,0.0893,0.01237

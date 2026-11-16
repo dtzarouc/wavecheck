@@ -1,0 +1,10 @@
+model,framing,n,accuracy,ci_low,ci_high,lost_vs_neutral,gained_vs_neutral,mcnemar_p
+claude-haiku-5-5,neutral,50,1,0.9287,1,,,
+claude-haiku-5-5,journal,50,0.98,0.895,0.9965,1,0,1
+claude-haiku-5-5,expert,50,0.96,0.8654,0.989,2,0,0.5
+claude-opus-5-5,neutral,50,1,0.9287,1,,,
+claude-opus-5-5,journal,50,1,0.9287,1,0,0,1
+claude-opus-5-5,expert,50,1,0.9287,1,0,0,1
+claude-sonnet-5-5,neutral,50,1,0.9287,1,,,
+claude-sonnet-5-5,journal,50,1,0.9287,1,0,0,1
+claude-sonnet-5-5,expert,50,1,0.9287,1,0,0,1
