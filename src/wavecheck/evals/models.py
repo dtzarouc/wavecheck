@@ -20,6 +20,15 @@ from wavecheck.io import append_jsonl
 
 load_dotenv()
 
+try:
+    # Use the operating system's certificate store (Windows/macOS), so HTTPS works behind a
+    # corporate proxy that re-signs TLS traffic with its own (system-trusted) certificate.
+    import truststore
+
+    truststore.inject_into_ssl()
+except ImportError:  # optional; plain certifi is used otherwise
+    pass
+
 
 def get_client() -> anthropic.Anthropic:
     """Create an API client (reads ANTHROPIC_API_KEY)."""
