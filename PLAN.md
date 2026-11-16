@@ -5,11 +5,11 @@ the application between 19 and 21 November.
 
 ## M0 · Set-up (4 Nov, one evening)
 
-- [ ] Create a public GitHub repository `wavecheck`, copy this folder in, make the first commit.
-- [ ] Create the virtual environment, run `pip install -e ".[dev]"`, then `pytest`. Most tests fail
+- [x] Create a public GitHub repository `wavecheck`, copy this folder in, make the first commit.
+- [x] Create the virtual environment, run `pip install -e ".[dev]"`, then `pytest`. Most tests fail
       with `NotImplementedError`; that is expected, and they are your to-do list.
-- [ ] Create an API key in the Claude Console, put it in `.env`, and set a monthly spend limit.
-- [ ] Open the folder in Claude Code: "Read CLAUDE.md and PLAN.md, then help me start M1."
+- [x] Create an API key in the Claude Console, put it in `.env`, and set a monthly spend limit.
+- [x] Open the folder in Claude Code: "Read CLAUDE.md and PLAN.md, then help me start M1."
 
 ## M1 · Physics core and the reproduction (5–7 Nov)
 
@@ -17,7 +17,7 @@ the application between 19 and 21 November.
 - [x] `physics/quasistatic.py`: naive Rayleigh model, radiation-reaction correction, and the
       Padé–Mie dipole resonance from PRB 94, 140301(R) (2016).
 - [x] `physics/bounds.py`: single-channel limit, passivity and energy-conservation residuals.
-- [ ] `pytest` green locally and on GitHub Actions.
+- [x] `pytest` green locally and on GitHub Actions.
 - [x] `repro/prb2016.py`: reproduce one figure from the 2016 paper as `figures/fig1_repro.png`,
       overlaying the published data if you still have it.
 
