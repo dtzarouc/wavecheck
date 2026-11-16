@@ -38,10 +38,10 @@ def _raw_dir(cfg: dict[str, Any]) -> Path:
     return ROOT / cfg.get("output_dir", "results") / "raw"
 
 
-def done_pairs(raw_dir: Path) -> set[tuple[str, str]]:
+def done_pairs(raw_dir: Path, prefix: str = "eval") -> set[tuple[str, str]]:
     """(task_id, requested model) pairs that already have a logged response."""
     pairs: set[tuple[str, str]] = set()
-    for path in sorted(raw_dir.glob("eval_2*.jsonl")):
+    for path in sorted(raw_dir.glob(f"{prefix}_2*.jsonl")):
         for rec in read_jsonl(path):
             pairs.add((rec["meta"]["task_id"], rec["request"]["model"]))
     return pairs
@@ -77,9 +77,11 @@ def run(
 
     raw_dir = _raw_dir(cfg)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
-    raw_path = raw_dir / f"eval_{stamp}.jsonl"
-    err_path = raw_dir / f"eval_errors_{stamp}.jsonl"
-    done = done_pairs(raw_dir)
+    # Pilot runs (limit set) log to pilot_*.jsonl so they never count towards the frozen full run.
+    prefix = "pilot" if limit is not None else "eval"
+    raw_path = raw_dir / f"{prefix}_{stamp}.jsonl"
+    err_path = raw_dir / f"{prefix}_errors_{stamp}.jsonl"
+    done = done_pairs(raw_dir, prefix)
     todo = [(t, m) for m in cfg["models"] for t in tasks if (t.id, m) not in done]
 
     n_per_model = max((sum(1 for _, m in todo if m == mm) for mm in cfg["models"]), default=0)
@@ -126,19 +128,19 @@ def run(
     return raw_path
 
 
-def summarise(raw_path: str | Path | None = None, cfg: dict[str, Any] | None = None):
+def summarise(raw_path: str | Path | None = None, prefix: str = "eval"):
     """One row per task x model: parsed answer, confidence, correct (True/False/None), usage.
 
-    Reads every results/raw/eval_2*.jsonl (raw_path only selects the folder), keeps the first
+    Reads every results/raw/<prefix>_2*.jsonl (raw_path only selects the folder), keeps the first
     logged response per (task, model), grades it against data/generated/eval_items.jsonl, and
-    writes results/summary_eval.csv. Returns the DataFrame.
+    writes results/summary_<prefix>.csv. Returns the DataFrame.
     """
     raw_dir = Path(raw_path).parent if raw_path else ROOT / "results" / "raw"
     items = {
         d["id"]: Task(**d) for d in read_jsonl(ROOT / "data" / "generated" / "eval_items.jsonl")
     }
     rows, seen = [], set()
-    for path in sorted(raw_dir.glob("eval_2*.jsonl")):
+    for path in sorted(raw_dir.glob(f"{prefix}_2*.jsonl")):
         for rec in read_jsonl(path):
             key = (rec["meta"]["task_id"], rec["request"]["model"])
             if key in seen or key[0] not in items:
@@ -165,6 +167,6 @@ def summarise(raw_path: str | Path | None = None, cfg: dict[str, Any] | None = N
                 }
             )
     df = pd.DataFrame(rows)
-    out = ROOT / "results" / "summary_eval.csv"
+    out = ROOT / "results" / f"summary_{prefix}.csv"
     df.to_csv(out, index=False)
     return df

@@ -49,7 +49,8 @@ def test_run_logs_every_pair_and_resumes(cfg, tmp_path):
     client = FakeClient()
     raw = runner.run(cfg, limit=2, client=client, workers=3)
     assert client.calls == 2 * 3 * 2  # 2 per family x 3 families x 2 models
-    assert len(runner.done_pairs(raw.parent)) == client.calls
+    assert raw.name.startswith("pilot_")
+    assert len(runner.done_pairs(raw.parent, "pilot")) == client.calls
     runner.run(cfg, limit=2, client=client)
     assert client.calls == 12  # nothing re-run
 
