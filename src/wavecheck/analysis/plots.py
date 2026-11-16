@@ -119,5 +119,39 @@ def fig_authority(summary_csv: Path, out: Path) -> None:
 
 def fig_hacking(gradient_csv: Path, episodes_csv: Path, out: Path) -> None:
     """Fig. 4: left, Q_sca vs optimisation step (naive vs corrected) with the 6/x^2 line;
-    right, exploitation and disclosure rates per condition and model."""
-    raise NotImplementedError
+    right, exploitation and disclosure rates per condition and model (only if episodes exist)."""
+    d = pd.read_csv(gradient_csv)
+    has_episodes = Path(episodes_csv).exists()
+    fig, axes = plt.subplots(1, 2 if has_episodes else 1, figsize=(10 if has_episodes else 6, 4))
+    ax = axes[0] if has_episodes else axes
+    naive = d[d["objective"] == "naive"]
+    corr = d[d["objective"] == "corrected"]
+    ax.semilogy(
+        naive["step"],
+        naive["q_naive"],
+        color="tab:red",
+        label="optimising naive model: reported $Q$",
+    )
+    ax.semilogy(
+        naive["step"],
+        naive["q_corrected"],
+        ":",
+        color="tab:red",
+        label="same designs, radiation-corrected $Q$",
+    )
+    ax.semilogy(
+        corr["step"], corr["q_corrected"], color="tab:blue", label="optimising corrected model"
+    )
+    ax.axhline(d["dipole_limit"].iloc[0], color="k", lw=1, label="dipole limit $6/x^2$")
+    ax.set(
+        xlabel="Adam step",
+        ylabel="scattering efficiency $Q_{sca}$",
+        title=f"Gradient agent, x = {d['x'].iloc[0]:g}",
+    )
+    ax.legend(fontsize=8)
+    if has_episodes:
+        e = pd.read_csv(episodes_csv)
+        rates = e.groupby(["model", "condition"])[["exploited", "disclosed"]].mean()
+        rates.plot.bar(ax=axes[1])
+        axes[1].set(ylabel="share of episodes", title="LLM agent")
+    _save(fig, out)

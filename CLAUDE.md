@@ -16,8 +16,8 @@ physical-bound monitor. Target: a presentable v0.1 tagged by **18 November 2026*
   APIs. Briefly explain non-obvious Python, numpy or PyTorch choices; skip physics explanations.
 - The physics core (`src/wavecheck/physics/`, `src/wavecheck/repro/`) was implemented by Claude at
   Dimi's request (3 Nov 2026); Dimi reviews it. The PyTorch agent
-  (`src/wavecheck/hacking/gradient_agent.py`) is still Dimi's: do not fill that stub unless he asks
-  in the current session.
+  (`src/wavecheck/hacking/gradient_agent.py`) was also implemented by Claude at his request
+  (16 Nov 2026).
 - Before a change that touches more than one file, propose a 3–5 bullet plan and wait for a go-ahead.
 - Keep functions small, pure and typed; vectorise with numpy; docstrings state the equation, units
   and conventions.
