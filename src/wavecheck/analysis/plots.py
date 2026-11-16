@@ -107,14 +107,96 @@ def fig_repro_max_absorption(csv_path: Path, out: Path) -> None:
     _save(fig, out)
 
 
+MODEL_COLORS = {
+    "claude-haiku-5-5": "tab:green",
+    "claude-sonnet-5-5": "tab:blue",
+    "claude-opus-5-5": "tab:purple",
+}
+
+
 def fig_calibration(summary_csv: Path, out: Path) -> None:
-    """Fig. 2: reliability diagram per model (resonance_shift), with ECE in the legend."""
-    raise NotImplementedError
+    """Fig. 2: reliability diagram per model, with ECE in the legend.
+
+    Left: resonance_shift only; right: all graded items. Points are 10 equal-width confidence
+    bins (marker area ~ number of answers); points above the diagonal mean underconfidence.
+    """
+    import numpy as np
+
+    from wavecheck.analysis.stats import wilson_interval
+    from wavecheck.evals.grading import expected_calibration_error
+
+    d = pd.read_csv(summary_csv)
+    d = d[d["correct"].notna() & d["confidence"].notna()]
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4.4), sharey=True)
+    for ax, (title, sub) in zip(
+        axes,
+        [("Resonance questions", d[d["family"] == "resonance_shift"]), ("All graded questions", d)],
+        strict=True,
+    ):
+        ax.plot([0, 1], [0, 1], "k:", lw=0.8)
+        for model, g in sub.groupby("model"):
+            c = g["confidence"].to_numpy()
+            y = g["correct"].astype(bool).to_numpy()
+            bins = np.minimum((c * 10).astype(int), 9)
+            ece = expected_calibration_error(c.tolist(), y.tolist())
+            for b in np.unique(bins):
+                sel = bins == b
+                lo, hi = wilson_interval(int(y[sel].sum()), int(sel.sum()))
+                ax.errorbar(
+                    c[sel].mean(),
+                    y[sel].mean(),
+                    yerr=[[max(0.0, y[sel].mean() - lo)], [max(0.0, hi - y[sel].mean())]],
+                    fmt="o",
+                    ms=3 + 2 * np.sqrt(sel.sum()),
+                    alpha=0.7,
+                    color=MODEL_COLORS.get(model),
+                    capsize=2,
+                )
+            ax.plot(
+                [],
+                [],
+                "o",
+                color=MODEL_COLORS.get(model),
+                label=f"{model.replace('claude-', '')} (ECE {ece:.3f}, n={len(g)})",
+            )
+        ax.set(xlabel="stated confidence", title=title, xlim=(0.35, 1.02), ylim=(0.35, 1.02))
+        ax.legend(fontsize=8, loc="lower right")
+    axes[0].set_ylabel("observed accuracy (95% Wilson CI)")
+    _save(fig, out)
 
 
-def fig_authority(summary_csv: Path, out: Path) -> None:
-    """Fig. 3: accuracy by framing (neutral / journal / expert) per model, with Wilson CIs."""
-    raise NotImplementedError
+def fig_authority(authority_csv: Path, out: Path) -> None:
+    """Fig. 3: accuracy by framing (neutral / journal / expert) per model, with Wilson CIs.
+
+    Reads results/eval_authority.csv (written by scripts/analyse_eval.py).
+    """
+    a = pd.read_csv(authority_csv)
+    framings = ["neutral", "journal", "expert"]
+    models = list(dict.fromkeys(a["model"]))
+    fig, ax = plt.subplots(figsize=(7, 4))
+    width = 0.25
+    for j, framing in enumerate(framings):
+        sub = a[a["framing"] == framing].set_index("model").loc[models]
+        xs = [i + (j - 1) * width for i in range(len(models))]
+        ax.errorbar(
+            xs,
+            sub["accuracy"],
+            yerr=[
+                (sub["accuracy"] - sub["ci_low"]).clip(lower=0),
+                (sub["ci_high"] - sub["accuracy"]).clip(lower=0),
+            ],
+            fmt=["o", "s", "^"][j],
+            capsize=3,
+            label=framing,
+        )
+    ax.set_xticks(range(len(models)), [m.replace("claude-", "") for m in models])
+    ax.set(
+        ylabel="accuracy (95% Wilson CI)",
+        ylim=(0.8, 1.01),
+        title="Report checks under neutral and authority framing (n = 50 each)",
+    )
+    ax.legend(fontsize=8, loc="lower right")
+    _save(fig, out)
 
 
 def fig_hacking(gradient_csv: Path, episodes_csv: Path, out: Path) -> None:
