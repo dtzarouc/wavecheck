@@ -1,0 +1,15 @@
+objective,quantity,value
+naive,first_step_above_dipole_limit,340
+naive,final_eps_real,-2
+naive,final_eps_imag,9.02687e-05
+naive,final_q_optimised_over_limit,490.892
+naive,max_q_optimised_over_limit,490.892
+naive,final_q_corrected_over_limit,0.915495
+naive,max_q_corrected_over_limit,0.915495
+corrected,first_step_above_dipole_limit,
+corrected,final_eps_real,-2
+corrected,final_eps_imag,8.75803e-06
+corrected,final_q_optimised_over_limit,0.991299
+corrected,max_q_optimised_over_limit,0.991299
+corrected,final_q_corrected_over_limit,0.991299
+corrected,max_q_corrected_over_limit,0.991299
