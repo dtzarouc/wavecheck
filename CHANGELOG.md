@@ -21,3 +21,7 @@ with the reason and the rerun it triggered.
   decisions): max_tokens 16000; report_check factors near the 25% boundary (YES 0.85/1.0/1.15,
   NO 0.6/1.5/2.0; 1.15 rather than 1.2 so the Rayleigh formula gives the same answer); budget_usd
   20. Pilot 2 checks the fixes.
+- 2026-11-16: prompts frozen (tag `prompts-frozen`, commit 86bf4ed); full M2 run, 600 calls,
+  $11.51. No changes to prompts, items or grading after the freeze.
+- 2026-11-16: v0.1 scope (PLAN fallback): M1, M2 with three models, the gradient half of M3. The
+  LLM-agent hacking episodes are implemented and tested with a fake client but not run.

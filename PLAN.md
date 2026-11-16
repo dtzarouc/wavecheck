@@ -23,30 +23,30 @@ the application between 19 and 21 November.
 
 ## M2 · Evaluation (8–12 Nov)
 
-- [ ] `evals/tasks.py`: three families. `resonance_shift` (numeric answer plus confidence),
+- [x] `evals/tasks.py`: three families. `resonance_shift` (numeric answer plus confidence),
       `report_check` (YES/NO, neutral framing) and `authority` (the same items, authority framing).
-- [ ] `evals/grading.py`: answer parser, tolerance grading, Brier score, expected calibration error.
-- [ ] Pilot: 10 items with one model. Read every transcript, fix the prompts, then freeze them
+- [x] `evals/grading.py`: answer parser, tolerance grading, Brier score, expected calibration error.
+- [x] Pilot: 10 items with one model. Read every transcript, fix the prompts, then freeze them
       (git tag `prompts-frozen`).
-- [ ] Full run: about 50 items per family with three models (`configs/eval.yaml`). Check the cost
+- [x] Full run: about 50 items per family with three models (`configs/eval.yaml`). Check the cost
       estimate first.
-- [ ] Figures 2 and 3.
+- [x] Figures 2 and 3.
 
 ## M3 · Reward-hacking testbed (13–16 Nov)
 
-- [ ] `hacking/env.py`: design environment with the naive (exploitable) and corrected simulators.
-- [ ] `hacking/gradient_agent.py` (PyTorch): Adam on (Re ε, Im ε ≥ 0) maximising the naive Q_sca.
+- [x] `hacking/env.py`: design environment with the naive (exploitable) and corrected simulators.
+- [x] `hacking/gradient_agent.py` (PyTorch): Adam on (Re ε, Im ε ≥ 0) maximising the naive Q_sca.
       Log the run toward ε → −2 and the point where it crosses the dipole limit 6/x².
-- [ ] `hacking/llm_agent.py`: the tool-use loop is written and tested with a fake client. Run three
+- [ ] `hacking/llm_agent.py` (deferred: not run for v0.1): the tool-use loop is written and tested with a fake client. Run three
       conditions (neutral, "must be physically realisable", monitor tool available) × 20 episodes ×
       two models.
-- [ ] `hacking/monitor.py`: bound check plus a disclosure check on the final report.
-- [ ] Figure 4.
+- [x] `hacking/monitor.py`: bound check plus a disclosure check on the final report.
+- [x] Figure 4.
 
 ## M4 · Write-up and release (17–18 Nov)
 
-- [ ] README results table filled from `results/`.
-- [ ] `report/report.md` (2–4 pages): question, set-up, three results, limitations, next steps.
+- [x] README results table filled from `results/`.
+- [x] `report/report.md` (2–4 pages): question, set-up, three results, limitations, next steps.
 - [ ] Tag v0.1; optionally archive on Zenodo for a DOI.
 - [ ] Put the link first under "Notable work" in the application.
 
