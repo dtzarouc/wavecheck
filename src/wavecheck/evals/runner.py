@@ -98,14 +98,19 @@ def run(
 
     client = client or models.get_client()
     lock = threading.Lock()
+    stop = threading.Event()  # set on an authentication error: no point making more calls
 
     def one(task: Task, model: str) -> None:
+        if stop.is_set():
+            return
         meta = {"task_id": task.id, "family": task.family}
         try:
             record = models.complete(
                 client, model, task.prompt, max_tokens=cfg.get("max_tokens", 4096), meta=meta
             )
         except Exception as exc:  # logged and retried on the next run
+            if type(exc).__name__ in {"AuthenticationError", "PermissionDeniedError"}:
+                stop.set()
             with lock:
                 append_jsonl(
                     err_path,
@@ -125,6 +130,8 @@ def run(
         for i, _ in enumerate(as_completed(futures), 1):
             if i % 25 == 0 or i == len(futures):
                 print(f"  {i}/{len(futures)} calls finished", flush=True)
+    if stop.is_set():
+        raise SystemExit("API key rejected (authentication error); fix .env and rerun.")
     return raw_path
 
 
