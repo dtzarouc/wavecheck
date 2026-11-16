@@ -48,3 +48,30 @@ def test_ece_is_zero_when_calibrated():
 def test_ece_measures_overconfidence():
     conf, correct = [0.9] * 10, [True] * 5 + [False] * 5
     assert grading.expected_calibration_error(conf, correct, n_bins=10) == pytest.approx(0.4)
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("**ANSWER:** -2.31\n**CONFIDENCE:** 0.7", ("-2.31", 0.7)),
+        ("ANSWER: YES\nCONFIDENCE: 85%", ("YES", 0.85)),
+        ("ANSWER: NO\nCONFIDENCE: 1.7", ("NO", None)),
+    ],
+)
+def test_parse_tolerates_markdown_and_percentages(text, expected):
+    assert grading.parse_answer(text) == expected
+
+
+def test_numeric_grading_accepts_prefixes_and_unicode_minus():
+    t = Task(
+        id="t", family="resonance_shift", prompt="", answer=-2.2, kind="numeric", tolerance_rel=0.02
+    )
+    assert grading.grade(t, "eps = −2.21") is True
+    assert grading.grade(t, "ε ≈ -2.21") is True
+    assert grading.grade(t, "YES") is None
+
+
+def test_yesno_grading_reads_the_first_word_only():
+    t = Task(id="t", family="report_check", prompt="", answer="YES", kind="yesno")
+    assert grading.grade(t, "Yes, it is within tolerance") is True
+    assert grading.grade(t, "maybe") is None
