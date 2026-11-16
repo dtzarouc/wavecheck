@@ -8,8 +8,9 @@ environment:
   eps_imag_range: [0.0, 5.0]
 
 gradient_agent:             # PyTorch; no API cost
-  steps: 2000
-  lr: 0.01
+  steps: 5000
+  lr: 0.02                  # initial rate; decays to 0 (cosine) over the run
+  schedule: cosine
   init: {eps_real: -3.0, eps_imag: 0.5, x: 0.1}
 
 llm_agent:

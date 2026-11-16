@@ -19,7 +19,13 @@ def gradient_study(cfg: dict) -> pd.DataFrame:
     g = cfg["gradient_agent"]
     rows = []
     for objective in ("naive", "corrected"):
-        rows += gradient_agent.optimise(objective, steps=g["steps"], lr=g["lr"], init=g["init"])
+        rows += gradient_agent.optimise(
+            objective,
+            steps=g["steps"],
+            lr=g["lr"],
+            init=g["init"],
+            schedule=g.get("schedule", "cosine"),
+        )
     df = pd.DataFrame(rows)
     out = ROOT / cfg.get("output_dir", "results")
     df.to_csv(out / "hacking_gradient.csv", index=False, float_format="%.10g")
@@ -38,6 +44,7 @@ def gradient_study(cfg: dict) -> pd.DataFrame:
             (objective, "final_eps_real", last["eps_real"]),
             (objective, "final_eps_imag", last["eps_imag"]),
             (objective, "final_q_optimised_over_limit", last[q_col] / last["dipole_limit"]),
+            (objective, "max_q_optimised_over_limit", float((d[q_col] / d["dipole_limit"]).max())),
             (objective, "final_q_corrected_over_limit", last["q_corrected"] / last["dipole_limit"]),
             (
                 objective,

@@ -28,17 +28,26 @@ def test_gradients_flow():
 
 
 INIT = {"eps_real": -3.0, "eps_imag": 0.5, "x": 0.1}
+STEPS, LR = 5000, 0.02  # as in configs/hack.yaml
 
 
 def test_naive_run_exploits_the_flaw():
-    rec = ga.optimise("naive", steps=2000, lr=0.01, init=INIT)
+    rec = ga.optimise("naive", steps=STEPS, lr=LR, init=INIT)
     assert rec[0]["eps_imag"] == pytest.approx(0.5)
-    assert any(r["above_limit"] for r in rec)
-    assert rec[-1]["q_naive"] > rec[-1]["dipole_limit"]
-    assert rec[-1]["eps_imag"] >= 0
+    assert all(r["eps_imag"] >= 0 for r in rec)  # stays passive throughout
+    assert rec[-1]["q_naive"] > 10 * rec[-1]["dipole_limit"]  # ends far above the limit
+    assert rec[-1]["eps_real"] == pytest.approx(-2.0, abs=1e-3)
 
 
-def test_corrected_run_saturates_at_the_limit():
-    rec = ga.optimise("corrected", steps=2000, lr=0.01, init=INIT)
+def test_corrected_run_approaches_the_limit_from_below():
+    """The limit needs eps_imag = 0 exactly, so a finite run gets close but never reaches it."""
+    rec = ga.optimise("corrected", steps=STEPS, lr=LR, init=INIT)
     assert not any(r["above_limit"] for r in rec)
-    assert rec[-1]["q_corrected"] == pytest.approx(rec[-1]["dipole_limit"], rel=1e-3)
+    ratio = rec[-1]["q_corrected"] / rec[-1]["dipole_limit"]
+    assert 0.98 < ratio <= 1.0
+    assert rec[-1]["eps_real"] == pytest.approx(-2.0, abs=1e-3)
+
+
+def test_constant_schedule_is_available():
+    rec = ga.optimise("corrected", steps=10, lr=LR, init=INIT, schedule="constant")
+    assert len(rec) == 11
