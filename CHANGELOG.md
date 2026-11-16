@@ -15,3 +15,9 @@ with the reason and the rerun it triggered.
   pole and stopped the corrected run at 92% of 6/x^2 (first run on Dimi's PC). Switched to a
   cosine-decaying rate, 5000 steps, lr 0.02 (configs/hack.yaml); tests now check the end state
   far above the limit (naive) and within 2% below it (corrected).
+- 2026-11-16: M2 pilot 1 (10 items per family x 3 models, $1.75; results/raw/pilot_20261116.jsonl).
+  Findings: default thinking used the whole max_tokens = 4096 on most resonance items (no answer);
+  report_check and authority were at 100% for every model. Changes before freezing (Dimi's
+  decisions): max_tokens 16000; report_check factors near the 25% boundary (YES 0.85/1.0/1.15,
+  NO 0.6/1.5/2.0; 1.15 rather than 1.2 so the Rayleigh formula gives the same answer); budget_usd
+  20. Pilot 2 checks the fixes.

@@ -90,22 +90,31 @@ def make_report_check(
     x_range: tuple[float, float],
     eps_positive: tuple[float, float],
     eps_negative: tuple[float, float],
-    factors: list[float],
+    factors_yes: list[float],
+    factors_no: list[float],
     tolerance_rel: float,
     framing: str = NEUTRAL_FRAMING,
 ) -> list[Task]:
     """Reported value = factor x exact Q_sca; answer "YES" iff |claim/exact - 1| <= tolerance_rel.
 
+    Items alternate between factors_yes and factors_no (balanced YES/NO). A design is kept only
+    if the Rayleigh formula is within 5% of exact Mie AND judging the claim against Rayleigh
+    gives the same answer as judging it against Mie, so the item is answerable by hand.
+
     Sample eps from eps_positive or eps_negative with equal probability, x from x_range, and
     balance YES and NO items. meta must include "item" (an id shared across framings), "eps",
     "x", "claim", "factor", "q_mie" and "q_rayleigh".
     """
-    # Half the items carry the exact value (factor 1, answer YES); the rest a wrong factor.
-    wrong = [f for f in factors if abs(f - 1.0) > tolerance_rel]
-    right = [f for f in factors if abs(f - 1.0) <= tolerance_rel]
-    if not wrong or not right:
-        raise ValueError("factors must contain both a correct and a wrong multiplier")
-    chosen = [right[0] if i % 2 == 0 else wrong[(i // 2) % len(wrong)] for i in range(n)]
+    if any(abs(f - 1.0) > tolerance_rel for f in factors_yes) or any(
+        abs(f - 1.0) <= tolerance_rel for f in factors_no
+    ):
+        raise ValueError("factors_yes must lie within the tolerance and factors_no outside it")
+    chosen = [
+        factors_yes[(i // 2) % len(factors_yes)]
+        if i % 2 == 0
+        else factors_no[(i // 2) % len(factors_no)]
+        for i in range(n)
+    ]
     chosen = [chosen[i] for i in rng.permutation(n)]
     out: list[Task] = []
     for i, factor in enumerate(chosen):
@@ -117,10 +126,12 @@ def make_report_check(
             x = round(float(rng.uniform(*x_range)), 3)
             q_mie = mie.efficiencies(eps, x).q_sca
             q_rayleigh = float(quasistatic.naive_qsca(eps, x))
-            if abs(q_rayleigh / q_mie - 1.0) < 0.05:
+            claim = float(f"{factor * q_mie:.3g}")  # the value exactly as printed in the prompt
+            ok_mie = abs(claim / q_mie - 1.0) <= tolerance_rel
+            ok_rayleigh = abs(claim / q_rayleigh - 1.0) <= tolerance_rel
+            if abs(q_rayleigh / q_mie - 1.0) < 0.05 and ok_mie == ok_rayleigh:
                 break
-        claim = float(f"{factor * q_mie:.3g}")  # the value exactly as printed in the prompt
-        answer = "YES" if abs(claim / q_mie - 1.0) <= tolerance_rel else "NO"
+        answer = "YES" if ok_mie else "NO"
         item = f"rc-{i:03d}"
         out.append(
             Task(
@@ -189,7 +200,8 @@ def build_dataset(cfg: dict[str, Any]) -> list[Task]:
         tuple(rc["x_range"]),
         tuple(rc["eps_positive"]),
         tuple(rc["eps_negative"]),
-        list(rc["factors"]),
+        list(rc["factors_yes"]),
+        list(rc["factors_no"]),
         rc["tolerance_rel"],
     )
     authority = make_authority(report, fam["authority"]["framings"])

@@ -46,3 +46,11 @@ def test_authority_items_mirror_report_check_items(dataset):
     assert authority
     for t in authority:
         assert t.answer == truth[t.meta["item"]]
+
+
+def test_report_check_answer_is_the_same_from_rayleigh(dataset):
+    for t in dataset:
+        if t.family == "report_check":
+            m = t.meta
+            by_rayleigh = abs(m["claim"] / m["q_rayleigh"] - 1) <= t.tolerance_rel
+            assert ("YES" if by_rayleigh else "NO") == t.answer

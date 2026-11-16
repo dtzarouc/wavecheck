@@ -61,3 +61,12 @@ def test_budget_guard_stops_before_any_call(cfg):
     with pytest.raises(SystemExit):
         runner.run(cfg, limit=2, client=client)
     assert client.calls == 0
+
+
+def test_hard_stop_on_actual_spend(cfg, monkeypatch):
+    monkeypatch.setattr(runner, "estimate_cost_usd", lambda *a, **k: 0.0)  # pass the pre-check
+    cfg["budget_usd"] = 1e-4  # each fake call costs 30 tokens x $1/Mtok = 3e-5
+    client = FakeClient()
+    with pytest.raises(SystemExit, match="budget"):
+        runner.run(cfg, limit=10, client=client, workers=1)
+    assert client.calls == 4  # 4 x 3e-5 >= 1e-4, then no new calls (60 were queued)

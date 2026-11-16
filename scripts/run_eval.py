@@ -11,9 +11,10 @@ def main() -> None:
     parser.add_argument("--config", default="configs/eval.yaml")
     parser.add_argument("--dry-run", action="store_true", help="print the plan and cost only")
     parser.add_argument("--limit", type=int, default=None, help="run only the first N tasks")
+    parser.add_argument("--name", default=None, help="log prefix, e.g. pilot2")
     args = parser.parse_args()
 
-    raw_path = run(load_config(args.config), dry_run=args.dry_run, limit=args.limit)
+    raw_path = run(load_config(args.config), dry_run=args.dry_run, limit=args.limit, name=args.name)
     print(f"raw log: {raw_path}")
 
 

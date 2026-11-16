@@ -5,6 +5,11 @@ while waiting on the network). Every response is appended to results/raw/eval_<Y
 under a lock, so concurrent writes never interleave. A rerun skips every (task, model) pair that
 already has a logged response in any results/raw/eval_*.jsonl, which makes the run resumable.
 Failed calls go to results/raw/eval_errors_<YYYYMMDD>.jsonl and are retried on the next run.
+
+Cost control has two layers: a pre-run estimate (cfg["estimate_tokens_out"] output tokens per
+call, from the pilot) that must fit in cfg["budget_usd"], and a hard stop on actual spend, summed
+from each response's usage, that blocks new calls once the budget is reached (calls already in
+flight still finish, so the overshoot is at most `workers` calls).
 """
 
 from __future__ import annotations
@@ -34,6 +39,12 @@ def estimate_cost_usd(
     return total
 
 
+def call_cost_usd(usage: dict[str, Any], model: str, cfg: dict[str, Any]) -> float:
+    """Actual cost of one call from its logged usage (thinking is included in output_tokens)."""
+    p_in, p_out = cfg["price_per_mtok"][model]
+    return (usage.get("input_tokens", 0) * p_in + usage.get("output_tokens", 0) * p_out) / 1e6
+
+
 def _raw_dir(cfg: dict[str, Any]) -> Path:
     return ROOT / cfg.get("output_dir", "results") / "raw"
 
@@ -54,6 +65,7 @@ def run(
     limit: int | None = None,
     client: Any = None,
     workers: int = 6,
+    name: str | None = None,
 ) -> Path:
     """Run every task x model pair that is not already in the raw log.
 
@@ -62,7 +74,8 @@ def run(
     3. For each remaining pair call models.complete(..., log_path=results/raw/eval_<YYYYMMDD>.jsonl,
        meta={"task_id": ..., "family": ...}).
     dry_run prints the plan and the estimate only; limit runs the first N tasks of each family
-    (the pilot). Returns the raw log path.
+    (the pilot). name sets the log prefix (default "pilot" with limit, else "eval"), so a second
+    pilot ("pilot2") does not resume from the first. Returns the raw log path.
     """
     tasks = build_dataset(cfg)
     write_jsonl(ROOT / "data" / "generated" / "eval_items.jsonl", (t.to_dict() for t in tasks))
@@ -78,18 +91,19 @@ def run(
     raw_dir = _raw_dir(cfg)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d")
     # Pilot runs (limit set) log to pilot_*.jsonl so they never count towards the frozen full run.
-    prefix = "pilot" if limit is not None else "eval"
+    prefix = name or ("pilot" if limit is not None else "eval")
     raw_path = raw_dir / f"{prefix}_{stamp}.jsonl"
     err_path = raw_dir / f"{prefix}_errors_{stamp}.jsonl"
     done = done_pairs(raw_dir, prefix)
     todo = [(t, m) for m in cfg["models"] for t in tasks if (t.id, m) not in done]
 
     n_per_model = max((sum(1 for _, m in todo if m == mm) for mm in cfg["models"]), default=0)
-    cost = estimate_cost_usd(n_per_model, cfg, tokens_out=cfg.get("max_tokens", 4096))
+    tokens_out = cfg.get("estimate_tokens_out", cfg.get("max_tokens", 4096))
+    cost = estimate_cost_usd(n_per_model, cfg, tokens_out=tokens_out)
     print(
         f"{len(tasks)} tasks x {len(cfg['models'])} models; {len(todo)} calls to make; "
-        f"upper cost estimate ${cost:.2f} (every call at max_tokens) vs budget "
-        f"${cfg['budget_usd']:.2f}"
+        f"cost estimate ${cost:.2f} ({tokens_out} output tokens per call) vs budget "
+        f"${cfg['budget_usd']:.2f}; hard stop at the budget on actual spend"
     )
     if dry_run or not todo:
         return raw_path
@@ -98,10 +112,12 @@ def run(
 
     client = client or models.get_client()
     lock = threading.Lock()
-    stop = threading.Event()  # set on an authentication error: no point making more calls
+    stop = threading.Event()  # authentication error: no point making more calls
+    over_budget = threading.Event()
+    spent = [0.0]  # a one-element list, so the nested function can update it
 
     def one(task: Task, model: str) -> None:
-        if stop.is_set():
+        if stop.is_set() or over_budget.is_set():
             return
         meta = {"task_id": task.id, "family": task.family}
         try:
@@ -124,14 +140,20 @@ def run(
             return
         with lock:
             append_jsonl(raw_path, record)
+            spent[0] += call_cost_usd(record["usage"], model, cfg)
+            if spent[0] >= cfg["budget_usd"]:
+                over_budget.set()
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [pool.submit(one, t, m) for t, m in todo]
         for i, _ in enumerate(as_completed(futures), 1):
             if i % 25 == 0 or i == len(futures):
                 print(f"  {i}/{len(futures)} calls finished", flush=True)
+    print(f"actual spend this run: ${spent[0]:.2f}")
     if stop.is_set():
         raise SystemExit("API key rejected (authentication error); fix .env and rerun.")
+    if over_budget.is_set():
+        raise SystemExit(f"Stopped at the budget (${spent[0]:.2f} spent); rerun resumes.")
     return raw_path
 
 
