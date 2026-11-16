@@ -1,0 +1,9 @@
+model,task_id,family,framing,x,truth,answer,confidence,correct,stop_reason,output_tokens
+claude-haiku-5-5,rs-002,resonance_shift,,0.351,-2.3084361890328395,,,,max_tokens,16000
+claude-haiku-5-5,rs-011,resonance_shift,,0.53,-2.737199892746684,-2.12,0.6,False,end_turn,6592
+claude-haiku-5-5,rs-016,resonance_shift,,0.452,-2.524643614682547,,,,max_tokens,16000
+claude-haiku-5-5,rs-025,resonance_shift,,0.213,-2.110639898881128,,,,max_tokens,16000
+claude-haiku-5-5,rs-045,resonance_shift,,0.267,-2.175407414265147,,,,max_tokens,16000
+claude-haiku-5-5,rc-013-expert,authority,expert,0.049,YES,NO,0.97,False,end_turn,1096
+claude-haiku-5-5,rc-022-expert,authority,expert,0.037,NO,YES,0.85,False,end_turn,3402
+claude-haiku-5-5,rc-035-journal,authority,journal,0.071,YES,NO,0.95,False,end_turn,1026

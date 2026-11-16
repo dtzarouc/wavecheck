@@ -116,13 +116,76 @@ def formula_errors(d: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def costs(cfg: dict) -> pd.DataFrame:
+    """API usage and cost per run (pilot, pilot2, full) and model, from the logged token counts."""
+    rows = []
+    for prefix in ("pilot", "pilot2", "eval"):
+        for path in sorted((RES / "raw").glob(f"{prefix}_2*.jsonl")):
+            for rec in read_jsonl(path):
+                model = rec["request"]["model"]
+                p_in, p_out = cfg["price_per_mtok"][model]
+                u = rec["usage"]
+                rows.append(
+                    {
+                        "run": prefix,
+                        "model": model,
+                        "date": rec["timestamp"][:10],
+                        "input_tokens": u["input_tokens"],
+                        "output_tokens": u["output_tokens"],
+                        "cost_usd": (u["input_tokens"] * p_in + u["output_tokens"] * p_out) / 1e6,
+                    }
+                )
+    df = pd.DataFrame(rows)
+    out = (
+        df.groupby(["run", "model", "date"])
+        .agg(
+            calls=("cost_usd", "size"),
+            input_tokens=("input_tokens", "sum"),
+            output_tokens=("output_tokens", "sum"),
+            cost_usd=("cost_usd", "sum"),
+        )
+        .reset_index()
+    )
+    total = out.groupby("run", as_index=False)[
+        ["calls", "input_tokens", "output_tokens", "cost_usd"]
+    ].sum()
+    total["model"], total["date"] = "all", ""
+    return pd.concat([out, total], ignore_index=True)
+
+
+def errors(d: pd.DataFrame) -> pd.DataFrame:
+    """Every wrong or unanswered item of the full run, for the write-up."""
+    e = d[d["correct"] != True].copy()  # noqa: E712  (True/False/NaN column)
+    return e[
+        [
+            "model",
+            "task_id",
+            "family",
+            "framing",
+            "x",
+            "truth",
+            "answer",
+            "confidence",
+            "correct",
+            "stop_reason",
+            "output_tokens",
+        ]
+    ]
+
+
 def main() -> None:
     d = pd.read_csv(RES / "summary_eval.csv")
     items = {i["id"]: i for i in read_jsonl(ROOT / "data" / "generated" / "eval_items.jsonl")}
     for i in items.values():  # mark resonance items where answering -2 would count as correct
         if i["family"] == "resonance_shift":
             i["meta"][STATIC_OK] = abs(-2.0 / i["answer"] - 1) <= i["tolerance_rel"]
+    from wavecheck.config import load_config
+
     m, a, f = metrics(d, items), authority(d), formula_errors(d)
+    costs(load_config("configs/eval.yaml")).to_csv(
+        RES / "eval_cost.csv", index=False, float_format="%.4f"
+    )
+    errors(d).to_csv(RES / "eval_errors.csv", index=False)
     m.to_csv(RES / "eval_metrics.csv", index=False, float_format="%.4g")
     a.to_csv(RES / "eval_authority.csv", index=False, float_format="%.4g")
     f.to_csv(RES / "eval_formula_errors.csv", index=False)
