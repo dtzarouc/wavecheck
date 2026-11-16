@@ -20,7 +20,7 @@ limit. A one-line bound check flags every one of those steps [`results/hacking_g
 ## 1. Why exact physics makes a good oracle
 
 Oversight research needs tasks whose answers can be checked without trusting the model. Light
-scattering by a sphere has an exact solution (Mie theory) that can be evaluated to machine precision,
+scattering by a sphere has an exact solution (Lorenz--Mie theory) that can be evaluated to machine precision,
 plus cheap consistency checks that any correct answer must pass: energy conservation, passivity of
 every multipole channel, and the single-channel limit Q ≤ 2(2n+1)/x². The textbook small-particle
 (quasistatic) model is also a *known, controllable flaw*. It is excellent far from resonance, misses
@@ -68,8 +68,9 @@ artefact that a physical bound would catch?
 - **First magnetic resonance.** Measured against Re ε at the exact complex pole of b₁, Eq. (15) has a
   maximum error of 0.93 % for x ≤ 0.8 and first exceeds 1 % at x = 0.81. This reproduces the paper's
   "< 1 % up to x = 0.8". Eqs. (13) and (8) reach 10.9 % and 33.3 % over the same range.
-- **The claim depends on the reference.** The paper does not state how its "exact" values were
-  extracted. Against the real-ε condition |b₁| = 1 instead of the pole, Eq. (15) reaches 1.52 % at
+- **The claim depends on the reference.** The paper uses as exact values the maximum (using a MATLAB sorting code) 
+over the amplitude of either an/bn and/or Qsca. In this sense, the "exact values" are those extracted from the 
+spectrum of the Mie coefficients using this technique. Against the real-ε condition |b₁| = 1 instead of the pole, Eq. (15) reaches 1.52 % at
   x = 0.8.
 - **Loss for maximum absorption (Fig. 2 of the paper).** Defined here as critical coupling, b₁ = 1/2,
   which equals the conjugate of the pole. Eq. (15) is within 7.4 % of exact for x ≤ 0.8.
