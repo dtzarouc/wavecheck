@@ -12,8 +12,12 @@ venv/
 .ruff_cache/
 .ipynb_checkpoints/
 
-# Secrets: never commit
+# Secrets: never commit (any .env variant, e.g. a "notepad.env.txt" saved by Notepad)
 .env
+.env.*
+*.env
+*.env.txt
+!.env.example
 
 # Generated or scratch data (raw results ARE committed, see results/README.md)
 data/generated/
